@@ -31,15 +31,15 @@ const commands: Command[] = [
       }
 
       return (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 break-all">
           {Object.entries(node.children || {}).map(([name, child]) => (
-            <div key={name} className="flex items-center gap-2">
+            <div key={name} className="flex items-center gap-2 min-w-0">
               {child.type === 'directory' ? (
-                <Folder className="w-4 h-4 text-yellow-400" />
+                <Folder className="w-4 h-4 shrink-0 text-yellow-400" />
               ) : (
-                <File className="w-4 h-4 text-blue-400" />
+                <File className="w-4 h-4 shrink-0 text-blue-400" />
               )}
-              <span className={child.type === 'directory' ? 'text-yellow-400' : ''}>{name}</span>
+              <span className={`truncate ${child.type === 'directory' ? 'text-yellow-400' : ''}`}>{name}</span>
             </div>
           ))}
         </div>
@@ -48,14 +48,27 @@ const commands: Command[] = [
   },
   {
     name: 'cd',
-    description: 'Change directory',
+    description: 'Change directory (e.g., cd projects, cd .., cd /, cd /home)',
     execute: (args, fs) => {
-      if (args.length === 0) {
+      if (args.length === 0 || args[0] === '~' || args[0] === '/home') {
         fs.currentPath = ['home'];
         return '';
       }
 
+      if (args[0] === '/') {
+        fs.currentPath = [];
+        return '';
+      }
+
+      if (args[0] === '.') {
+        return '';
+      }
+
       const newPath = getAbsolutePath(fs.currentPath, args[0]);
+      if (newPath.join('/') === fs.currentPath.join('/')) {
+        return '';
+      }
+
       const node = getNode(fs, newPath);
 
       if (!node || node.type !== 'directory') {
@@ -150,6 +163,33 @@ const commands: Command[] = [
         <p className="text-green-400">Knock, knock, Neo.</p>
       </div>
     )
+  },
+  {
+    name: 'sudo',
+    description: 'Execute a command with superuser privileges',
+    execute: () => (
+      <div className="space-y-2 text-red-500">
+        <p>Nice try! 😄</p>
+        <pre className="text-xs">
+{`
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣤⣤⣤⣤⣤⣤⣀⡀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣄⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⢀⣴⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⡀⠀⠀
+⠀⠀⠀⠀⠀⠀⢀⣴⣿⣿⣿⠋⠉⠀⠀⠀⠀⠈⠉⠻⣿⣿⣿⣿⣿⣿⣿⣿⣦⡀
+⠀⠀⠀⠀⠀⣰⣿⣿⣿⣿⠇⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⣿⣿⣿⣿⣿⣿⣿⣿⣷
+⠀⠀⠀⢀⣼⣿⣿⣿⣿⡟⠀⠀⠀⠀⣠⣴⣶⣶⣦⡀⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿
+⠀⠀⢀⣾⣿⣿⣿⣿⣿⡇⠀⠀⠀⢸⣿⣿⣿⣿⣿⣷⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿
+⠀⠀⣾⣿⣿⣿⣿⣿⣿⡇⠀⠀⠀⢸⣿⣿⣿⣿⣿⣿⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿
+⠀⢰⣿⣿⣿⣿⣿⣿⣿⡇⠀⣀⣀⣸⣿⣿⣿⣿⣿⣿⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿
+⠀⢸⣿⣿⣿⣿⣿⣿⣿⡇⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿
+⠀⢸⣿⣿⣿⣿⣿⣿⣿⡇⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿
+⠀⠘⢿⣿⣿⣿⣿⣿⠟⠁⠻⣿⣿⣿⣿⣿⣿⣿⣿⠟⠀⠻⣿⣿⣿⣿⣿⣿⣿⣿
+⠀⠀⠀⠙⠿⠿⠟⠁⠀⠀⠀⠈⠛⠿⠿⠿⠟⠋⠁⠀⠀⠀⠈⠛⠿⠿⠿⠿⠿⠛
+`}
+        </pre>
+        <p>You have no power here! This is a browser, not a Linux terminal 🤓</p>
+      </div>
+    )
   }
 ];
 
@@ -159,6 +199,7 @@ export default function Terminal() {
   const [selectedSuggestion, setSelectedSuggestion] = useState(-1);
   const [fileSystem, setFileSystem] = useState<FileSystem>(createFileSystem());
   const [theme, setTheme] = useState<ThemeName>('dark');
+  const [historyIndex, setHistoryIndex] = useState(-1);
   const [history, setHistory] = useState<CommandHistory[]>([{
     command: 'welcome',
     output: (
@@ -236,6 +277,31 @@ export default function Terminal() {
           ? (selectedSuggestion <= 0 ? suggestions.length - 1 : selectedSuggestion - 1)
           : (selectedSuggestion === suggestions.length - 1 ? 0 : selectedSuggestion + 1);
         setSelectedSuggestion(newIndex);
+        return;
+      }
+
+      const commandHistory = history
+        .filter(entry => entry.command !== 'welcome')
+        .map(entry => entry.command);
+
+      if (commandHistory.length === 0) return;
+
+      if (e.key === 'ArrowUp') {
+        const newIndex = historyIndex === -1 
+          ? commandHistory.length - 1 
+          : Math.max(0, historyIndex - 1);
+        setHistoryIndex(newIndex);
+        setInput(commandHistory[newIndex]);
+      } else if (e.key === 'ArrowDown') {
+        if (historyIndex === -1) return;
+        const newIndex = historyIndex + 1;
+        if (newIndex >= commandHistory.length) {
+          setHistoryIndex(-1);
+          setInput('');
+        } else {
+          setHistoryIndex(newIndex);
+          setInput(commandHistory[newIndex]);
+        }
       }
       return;
     }
@@ -243,6 +309,8 @@ export default function Terminal() {
     if (e.key === 'Enter') {
       const trimmedInput = input.trim();
       if (!trimmedInput) return;
+
+      setHistoryIndex(-1);
 
       const args = trimmedInput.split(' ');
       const commandName = args[0].toLowerCase();
@@ -254,11 +322,15 @@ export default function Terminal() {
         setTheme(args[1] as ThemeName);
       }
       
+      const newFs = { ...fileSystem };
+      const output = command 
+        ? command.execute(args.slice(1), newFs)
+        : `Command not found: ${commandName}. Type 'help' for available commands.`;
+      
+      setFileSystem(newFs);
       setHistory(prev => [...prev, {
         command: trimmedInput,
-        output: command 
-          ? command.execute(args.slice(1), fileSystem)
-          : `Command not found: ${commandName}. Type 'help' for available commands.`,
+        output,
         timestamp: new Date()
       }]);
       
@@ -269,53 +341,59 @@ export default function Terminal() {
     if (e.key === 'Escape') {
       setSuggestions([]);
       setSelectedSuggestion(-1);
+      setHistoryIndex(-1);
+      setInput('');
     }
   };
 
   const currentTheme = themes[theme];
 
   return (
-    <div className={`min-h-screen ${currentTheme.styles.background} ${currentTheme.styles.text} p-4 font-mono transition-colors duration-300`}>
+    <div className={`min-h-screen ${currentTheme.styles.background} ${currentTheme.styles.text} p-2 sm:p-4 font-mono transition-colors duration-300`}>
       <div className="max-w-3xl mx-auto space-y-4">
         <div className={`flex items-center gap-2 bg-opacity-80 backdrop-blur p-2 rounded-t-lg border-b ${currentTheme.styles.border}`}>
-          <TerminalIcon className="w-4 h-4" />
-          <span>portfolio.sh</span>
+          <TerminalIcon className="w-4 h-4 shrink-0" />
+          <span className="truncate">portfolio.sh</span>
           <div className="flex-1" />
           <Monitor 
-            className={`w-4 h-4 ${currentTheme.styles.accent} cursor-pointer`}
+            className={`w-4 h-4 shrink-0 ${currentTheme.styles.accent} cursor-pointer`}
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           />
         </div>
         
-        <div className={`bg-opacity-80 backdrop-blur p-4 rounded-b-lg min-h-[calc(100vh-8rem)] flex flex-col ${currentTheme.styles.border} border`}>
-          <div className="flex-1 space-y-2">
+        <div className={`bg-opacity-80 backdrop-blur p-2 sm:p-4 rounded-b-lg min-h-[calc(100vh-12rem)] flex flex-col ${currentTheme.styles.border} border`}>
+          <div className="flex-1 space-y-2 overflow-x-auto">
             {history.map((entry, i) => (
               <div key={i} className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className={currentTheme.styles.prompt}>visitor@portfolio</span>
-                  <span className={currentTheme.styles.accent}>~{fileSystem.currentPath.length > 1 ? '/' + fileSystem.currentPath.slice(1).join('/') : ''}$</span>
-                  <span>{entry.command}</span>
+                <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap min-w-0">
+                  <span className={`${currentTheme.styles.prompt} shrink-0`}>visitor@portfolio</span>
+                  <span className={`${currentTheme.styles.accent} shrink-0`}>~{fileSystem.currentPath.length > 1 ? '/' + fileSystem.currentPath.slice(1).join('/') : ''}$</span>
+                  <span className="break-all">{entry.command}</span>
                 </div>
-                <div className="pl-4">{entry.output}</div>
+                <div className="pl-2 sm:pl-4 break-words">{entry.output}</div>
               </div>
             ))}
           </div>
           
-          <div className="relative">
-            <div className="flex items-center gap-2 pt-2">
-              <span className={currentTheme.styles.prompt}>visitor@portfolio</span>
-              <span className={currentTheme.styles.accent}>~{fileSystem.currentPath.length > 1 ? '/' + fileSystem.currentPath.slice(1).join('/') : ''}$</span>
+          <div className="relative mt-4">
+            <div className="flex items-center gap-2 pt-2 flex-wrap sm:flex-nowrap min-w-0">
+              <span className={`${currentTheme.styles.prompt} shrink-0`}>visitor@portfolio</span>
+              <span className={`${currentTheme.styles.accent} shrink-0`}>~{fileSystem.currentPath.length > 1 ? '/' + fileSystem.currentPath.slice(1).join('/') : ''}$</span>
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleCommand}
-                className={`flex-1 bg-transparent outline-none ${currentTheme.styles.text}`}
+                className={`flex-1 bg-transparent outline-none ${currentTheme.styles.text} min-w-0`}
                 autoFocus
+                spellCheck={false}
+                autoCapitalize="none"
+                autoComplete="off"
+                autoCorrect="off"
               />
             </div>
             {suggestions.length > 0 && (
-              <div className={`absolute bottom-full left-0 ${currentTheme.styles.background} rounded-lg p-2 space-y-1 shadow-lg border ${currentTheme.styles.border}`}>
+              <div className={`absolute bottom-full left-0 right-0 sm:right-auto ${currentTheme.styles.background} rounded-lg p-2 space-y-1 shadow-lg border ${currentTheme.styles.border} max-h-48 overflow-y-auto`}>
                 {suggestions.map((suggestion, i) => (
                   <div
                     key={suggestion}
@@ -329,6 +407,15 @@ export default function Terminal() {
           </div>
           <div ref={bottomRef} />
         </div>
+
+        <footer className="text-center py-4 opacity-70 hover:opacity-100 transition-opacity">
+          <p className="text-sm animate-pulse">
+            🚀 Made with 💖 by Elias from 🇩🇿 
+          </p>
+          <p className="text-xs mt-2">
+            ⚡️ Powered by React + TypeScript + Tailwind 🎨
+          </p>
+        </footer>
       </div>
     </div>
   );

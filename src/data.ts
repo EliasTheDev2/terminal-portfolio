@@ -5,7 +5,7 @@ export const projects: Project[] = [
     name: 'Terminal Portfolio',
     description: 'An innovative portfolio website styled as a terminal interface',
     technologies: ['React', 'TypeScript', 'Tailwind CSS'],
-    link: 'https://github.com/yourusername/terminal-portfolio'
+    link: 'https://github.com/EliasTheDev2/terminal-portfolio'
   },
   // Add more projects here
 ];
